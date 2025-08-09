@@ -4,7 +4,8 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
-var mongoose = require('mongoose'); // Add Mongoose
+var mongoose = require('mongoose');
+require('dotenv').config(); // Load .env file
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -30,8 +31,7 @@ app.use(cors({
 }));
 
 // MongoDB Connection
-const mongoURI = "mongodb+srv://saurabh:10062006@work.qatseff.mongodb.net/yourDatabaseName?retryWrites=true&w=majority";
-mongoose.connect(mongoURI, {
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
@@ -43,17 +43,14 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 // Catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // Error handler
-app.use(function(err, req, res, next) {
-  // Set locals, only providing error in development
+app.use(function (err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // Render the error page
   res.status(err.status || 500);
   res.render('error');
 });
