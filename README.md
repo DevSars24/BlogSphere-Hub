@@ -103,25 +103,10 @@ Author 👨‍💻
 
 Saurabh Singh Rajput
 Self-Taught Programmer & Coder
-GitHub Profile | LinkedIn
+
 
 Future Enhancements 🌱
-
-
-
-
 
 ✅ Add "Contact Us," "About," and "Services" pages for better user engagement.
 ✅ Implement search and filter functionality for blogs.
 ✅ Add image upload support to enhance blog posts.
-
-
-
-
-
-
-
-
-
-
-
