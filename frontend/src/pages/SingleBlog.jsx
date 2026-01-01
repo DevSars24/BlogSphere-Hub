@@ -56,7 +56,7 @@ const SingleBlog = () => {
     return (
       <>
         <Navbar />
-        <div className="flex items-center justify-center h-[60vh] text-gray-300 text-lg">
+        <div className="flex items-center justify-center pt-20 h-[calc(60vh-5rem)] text-gray-300 text-lg">
           Loading...
         </div>
       </>
@@ -67,7 +67,7 @@ const SingleBlog = () => {
     return (
       <>
         <Navbar />
-        <div className="flex flex-col items-center justify-center h-[60vh] text-center text-gray-300">
+        <div className="flex flex-col items-center justify-center pt-20 h-[calc(60vh-5rem)] text-center text-gray-300">
           <p className="text-red-400 mb-4">Error: {error}</p>
           <button
             className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg text-white font-semibold hover:scale-105 transition-transform"
@@ -84,7 +84,7 @@ const SingleBlog = () => {
     return (
       <>
         <Navbar />
-        <div className="flex flex-col items-center justify-center h-[60vh] text-center text-gray-300">
+        <div className="flex flex-col items-center justify-center pt-20 h-[calc(60vh-5rem)] text-center text-gray-300">
           <p>No blog found</p>
           <button
             className="mt-4 px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg text-white font-semibold hover:scale-105 transition-transform"
@@ -100,7 +100,7 @@ const SingleBlog = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-b from-[#0f0f0f] to-[#1a1a1a] text-white py-10 px-4">
+      <div className="min-h-screen bg-gradient-to-b from-[#0f0f0f] to-[#1a1a1a] text-white pt-20 px-4 pb-10">
         <div className="max-w-6xl mx-auto backdrop-blur-md bg-white/5 rounded-2xl shadow-lg p-8 lg:p-12 border border-white/10">
           {/* Blog Header */}
           <div className="flex flex-col lg:flex-row gap-8 mb-10">
