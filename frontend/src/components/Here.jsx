@@ -4,8 +4,8 @@ import heroImg from "../images/hero.gif";
 const Hero = () => {
   return (
     <section 
-      className="hero flex flex-col-reverse lg:flex-row items-center justify-between px-6 lg:px-[100px] py-10 lg:py-0 relative overflow-hidden bg-gradient-to-br from-[#0c0c0c] via-[#141414] to-[#1a1a1a]"
-      style={{ height: "calc(100vh - 100px)" }}
+      className="hero flex flex-col-reverse lg:flex-row items-center justify-between px-6 lg:px-[100px] py-10 lg:py-0 pt-24 lg:pt-0 relative overflow-hidden bg-gradient-to-br from-[#0c0c0c] via-[#141414] to-[#1a1a1a]"
+      style={{ height: "calc(100vh - 96px)" }}
     >
       {/* Background glow effects */}
       <div className="absolute top-[-120px] left-[-120px] w-[350px] h-[350px] bg-purple-500/30 blur-[150px] rounded-full"></div>
