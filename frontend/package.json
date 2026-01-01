@@ -14,6 +14,7 @@
     "@tailwindcss/vite": "^4.1.11",
     "html-react-parser": "^5.2.6",
     "jodit-react": "^5.2.19",
+    "jwt-decode": "^4.0.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "tailwindcss": "^4.1.11"
