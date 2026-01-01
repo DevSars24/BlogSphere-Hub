@@ -1,12 +1,11 @@
-
-var mongoose = require("mongoose"); 
+var mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
   username: String,
   name: String,
   email: String,
   password: String,
-  isAdmin:{
+  isAdmin: {
     type: Boolean,
     default: false
   },
@@ -17,5 +16,4 @@ const userSchema = new mongoose.Schema({
 });
 
 const userModel = mongoose.model("user", userSchema);
-
 module.exports = userModel;

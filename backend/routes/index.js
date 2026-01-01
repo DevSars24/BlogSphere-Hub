@@ -3,168 +3,196 @@ var router = express.Router();
 var userModel = require("../models/userModel");
 var blogModel = require("../models/blogModel");
 var bcrypt = require('bcryptjs');
-const multer  = require('multer');
+const multer = require('multer');
 const path = require('path');
 var jwt = require('jsonwebtoken');
 
-const secret = "secret";
+const secret = process.env.JWT_SECRET || "secret";
 
 /* GET home page. */
-router.get('/', function (req, res, next) {
+router.get('/', function (req, res) {
   res.render('index', { title: 'Express' });
 });
 
+/* ======================
+   SIGN UP
+====================== */
 router.post("/signUp", async (req, res) => {
-  let { username, name, email, password } = req.body;
-  let emailCon = await userModel.findOne({ email: email });
-  if (emailCon) {
-    return res.json({
-      success: false,
-      msg: "Email already exists"
-    });
-  }
-  else {
+  try {
+    let { username, name, email, password } = req.body;
+
+    let emailCon = await userModel.findOne({ email });
+    if (emailCon) {
+      return res.json({
+        success: false,
+        msg: "Email already exists"
+      });
+    }
+
+    // 🔥 Admin email check
+    let isAdmin = false;
+    if (email === "saurabhsingh100605@gmail.com") {
+      isAdmin = true;
+    }
+
     bcrypt.genSalt(12, function (err, salt) {
       bcrypt.hash(password, salt, async function (err, hash) {
         if (err) throw err;
 
-        let user = await userModel.create({
-          username: username,
-          name: name,
-          email: email,
+        await userModel.create({
+          username,
+          name,
+          email,
           password: hash,
+          isAdmin
         });
 
         return res.json({
           success: true,
-          msg: "User created successfully",
-        })
+          msg: "User created successfully"
+        });
       });
+    });
+  } catch (err) {
+    return res.json({
+      success: false,
+      msg: "Signup failed"
     });
   }
 });
 
+/* ======================
+   LOGIN (JWT + isAdmin)
+====================== */
 router.post("/login", async (req, res) => {
   let { email, password } = req.body;
-  let user = await userModel.findOne({ email: email });
+
+  let user = await userModel.findOne({ email });
   if (!user) {
     return res.json({
       success: false,
       msg: "User not found"
     });
   }
-  else {
-    bcrypt.compare(password, user.password, function (err, result) {
-      if (result) {
-        let token = jwt.sign({ userId: user._id }, secret);
-        return res.json({
-          success: true,
-          msg: "User logged in successfully",
-          token: token
-        })
-      }
-      else{
-        return res.json({
-          success: false,
-          msg: "Invalid password"
-        })
-      }
-    })
-  }
+
+  bcrypt.compare(password, user.password, function (err, result) {
+    if (result) {
+      // 🔥 isAdmin included in token
+      let token = jwt.sign(
+        {
+          userId: user._id,
+          isAdmin: user.isAdmin
+        },
+        secret
+      );
+
+      return res.json({
+        success: true,
+        msg: "User logged in successfully",
+        token
+      });
+    } else {
+      return res.json({
+        success: false,
+        msg: "Invalid password"
+      });
+    }
+  });
 });
 
+/* ======================
+   MULTER SETUP
+====================== */
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './uploads')
+    cb(null, './uploads');
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const extName = path.extname(file.originalname);
     cb(null, file.fieldname + '-' + uniqueSuffix + extName);
   }
-})
+});
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
+/* ======================
+   UPLOAD BLOG (ADMIN ONLY)
+====================== */
 router.post("/uploadBlog", upload.single('image'), async (req, res) => {
   try {
-    let {token, title, desc, content} = req.body;
-    // Decode the token to get the user ID
+    let { token, title, desc, content } = req.body;
+
     let decoded = jwt.verify(token, secret);
-    let user = await userModel.findOne({ _id: decoded.userId });
-    
-    if (!user) {
+
+    // 🔒 ADMIN CHECK
+    if (!decoded.isAdmin) {
       return res.json({
         success: false,
-        msg: "User not found"
+        msg: "Admin access only"
       });
     }
-    
-    // Retrieve the file name from the uploaded file
+
     const imageName = req.file ? req.file.filename : null;
 
-    // Create a new blog entry
     let blog = await blogModel.create({
-      title: title,
-      content: content,
-      image: imageName, // Use the image name here
-      desc: desc,
-      user: user._id
+      title,
+      desc,
+      content,
+      image: imageName
     });
 
-    // Respond with success
     return res.json({
       success: true,
       msg: "Blog created successfully",
-      blog: blog
+      blog
     });
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
     return res.json({
       success: false,
-      msg: "An error occurred"
+      msg: "Invalid or expired token"
     });
   }
 });
 
+/* ======================
+   GET ALL BLOGS
+====================== */
 router.post("/getBlogs", async (req, res) => {
-  let {token} = req.body;
-  let decoded = jwt.verify(token, secret);
-  let user = await userModel.findOne({ _id: decoded.userId });
-  if (!user) {
-    return res.json({
-      success: false,
-      msg: "User not found"
-    });
-  }
-  else{
+  try {
     let blogs = await blogModel.find({});
     return res.json({
       success: true,
       msg: "Blogs fetched successfully",
-      blogs: blogs
-    })
+      blogs
+    });
+  } catch {
+    return res.json({
+      success: false,
+      msg: "Failed to fetch blogs"
+    });
   }
 });
 
+/* ======================
+   GET SINGLE BLOG
+====================== */
 router.post("/getBlog", async (req, res) => {
-  let {token, blogId} = req.body;
-  let decoded = jwt.verify(token, secret);
-  let user = await userModel.findOne({ _id: decoded.userId });
-  if (!user) {
-    return res.json({
-      success: false,
-      msg: "User not found"
-    });
-  }
-  else{
-    let blog = await blogModel.findOne({_id: blogId});
+  try {
+    let { blogId } = req.body;
+    let blog = await blogModel.findOne({ _id: blogId });
+
     return res.json({
       success: true,
-      msg: "Blog featched successfully",
-      blog: blog
-    })
+      msg: "Blog fetched successfully",
+      blog
+    });
+  } catch {
+    return res.json({
+      success: false,
+      msg: "Blog not found"
+    });
   }
-})
+});
 
 module.exports = router;
