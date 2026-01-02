@@ -27,26 +27,21 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // -------------------------------------------------------------------------
 // IMPROVED CORS CONFIGURATION
 // -------------------------------------------------------------------------
+// Simplified CORS configuration
 const allowedOrigins = [
   'http://localhost:5173', 
-  // Add your specific Vercel URL here:
-  'https://blogsphere-4mkrlgebr-saurabh-singhs-projects-4d1f9766.vercel.app',
-  /\.vercel\.app$/ // This regex will allow ALL public vercel.app URLs you generate
+  'https://blogsphere-4mkrlgebr-saurabh-singhs-projects-4d1f9766.vercel.app'
 ];
+
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
+    // allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     
-    const isAllowed = allowedOrigins.some(allowed => {
-      if (allowed instanceof RegExp) return allowed.test(origin);
-      return allowed === origin;
-    });
-
-    if (isAllowed) {
+    // Check if the origin starts with your vercel project prefix or is in the list
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('vercel.app')) {
       callback(null, true);
     } else {
-      console.log('Blocked by CORS:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -55,8 +50,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Handle preflight OPTIONS requests globally
 app.options('*', cors());
+
 // -------------------------------------------------------------------------
 
 // MongoDB Connection
