@@ -35,19 +35,15 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
-    
-    // Check if the origin starts with your vercel project prefix or is in the list
-    if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('vercel.app')) {
+    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization']
+  credentials: true
 }));
 
 app.options('*', cors());
