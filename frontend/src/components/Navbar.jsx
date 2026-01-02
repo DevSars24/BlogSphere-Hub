@@ -1,25 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import logo from "../images/logo.png";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { jwtDecode } from "jwt-decode";
-import { Menu, X, LogOut, PlusSquare } from 'lucide-react';
+import { Menu, X, LogOut, PlusSquare, LayoutGrid } from 'lucide-react';
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // 🔐 Check admin from JWT
+  // 🔐 Admin logic
   let isAdmin = false;
   const token = localStorage.getItem("token");
-
   if (token) {
     try {
       const decoded = jwtDecode(token);
       isAdmin = decoded.isAdmin === true;
-    } catch {
-      isAdmin = false;
-    }
+    } catch { isAdmin = false; }
   }
 
   const navLinks = [
@@ -30,114 +27,125 @@ const Navbar = () => {
     { name: "Contact", path: "/contact" },
   ];
 
-  const handleLinkClick = () => {
-    setIsMobileMenuOpen(false);
-  };
+  // Prevent scrolling when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [isMobileMenuOpen]);
 
-  // 🔥 UPDATED LOGOUT LOGIC
+  const handleLinkClick = () => setIsMobileMenuOpen(false);
+
   const handleLogout = () => {
-    localStorage.clear(); // Saari login details saaf
+    localStorage.clear();
     setIsMobileMenuOpen(false);
-    // window.location.href ki jagah navigate use kiya taaki refresh/404 na aaye
-    navigate("/login", { replace: true }); 
+    navigate("/login", { replace: true });
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-[100] bg-[#0c0c0c]/80 backdrop-blur-xl border-b border-white/10">
-      <div className="max-w-7xl mx-auto flex items-center justify-between h-[80px] px-6 lg:px-12">
+    <nav className="fixed top-0 left-0 w-full z-[100] transition-all duration-300 bg-[#0c0c0c]/90 backdrop-blur-xl border-b border-white/5">
+      <div className="max-w-7xl mx-auto flex items-center justify-between h-[70px] md:h-[85px] px-5 lg:px-12">
 
-        {/* Logo */}
+        {/* Logo Section */}
         <Link to="/" className="flex items-center" onClick={handleLinkClick}>
           <img
-            className="w-[150px] md:w-[180px] hover:brightness-110 transition-all"
+            className="w-[130px] md:w-[170px] object-contain transition-all"
             src={logo}
             alt="Logo"
           />
         </Link>
 
-        {/* Desktop Links */}
-        <div className="hidden md:flex items-center gap-6">
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link, idx) => (
             <Link
               key={idx}
               to={link.path}
-              className={`text-sm font-bold tracking-tight transition-all duration-300 
-                ${location.pathname === link.path
-                  ? "text-white"
-                  : "text-gray-500 hover:text-gray-200"}`}
+              className={`text-[13px] uppercase tracking-widest font-bold transition-all duration-300 
+                ${location.pathname === link.path ? "text-white" : "text-gray-500 hover:text-white"}`}
             >
               {link.name}
-              {location.pathname === link.path && (
-                <div className="h-1 w-1 bg-purple-500 rounded-full mx-auto mt-1 animate-pulse"></div>
-              )}
             </Link>
           ))}
 
-          {/* 🔥 Admin Only */}
           {isAdmin && (
             <Link
               to="/uploadBlog"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm font-bold hover:bg-purple-500/20 transition-all"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-black text-[12px] font-black uppercase tracking-tighter hover:bg-gray-200 transition-all"
             >
               <PlusSquare size={16} /> Add Article
             </Link>
           )}
 
-          {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="group flex items-center gap-2 ml-4 px-5 py-2.5 rounded-xl bg-white text-black text-sm font-black uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95"
+            className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-red-500/20 hover:border-red-500/50 transition-all"
           >
-            <LogOut size={16} className="group-hover:translate-x-1 transition-transform" /> 
-            Logout
+            <LogOut size={20} />
           </button>
         </div>
 
-        {/* Mobile Toggle */}
+        {/* Mobile Toggle Button */}
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="md:hidden p-2 rounded-xl bg-white/5 text-white"
+          className="md:hidden p-2.5 rounded-xl bg-white/5 text-gray-300 border border-white/10 active:scale-90 transition-all"
         >
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
-      {/* Mobile Menu (Glassmorphic) */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 top-[80px] bg-[#0c0c0c]/95 backdrop-blur-2xl z-50 p-6 flex flex-col space-y-6">
-          <div className="flex flex-col space-y-4">
-            {navLinks.map((link, idx) => (
-              <Link
-                key={idx}
-                to={link.path}
-                onClick={handleLinkClick}
-                className={`text-2xl font-black uppercase tracking-tighter ${
-                  location.pathname === link.path ? "text-purple-500" : "text-gray-600"
-                }`}
-              >
-                {link.name}
-              </Link>
-            ))}
+      {/* --- MOBILE OVERLAY MENU --- */}
+      <div className={`
+        fixed inset-0 top-[70px] w-full h-[calc(100vh-70px)] bg-[#080808] z-50 
+        md:hidden flex flex-col transition-all duration-500 ease-in-out
+        ${isMobileMenuOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"}
+      `}>
+        <div className="flex flex-col p-8 space-y-4">
+          <p className="text-[10px] font-mono tracking-[0.4em] uppercase text-gray-600 mb-4 italic">Navigation Arena</p>
+          
+          {navLinks.map((link, idx) => (
+            <Link
+              key={idx}
+              to={link.path}
+              onClick={handleLinkClick}
+              className={`
+                flex items-center justify-between p-5 rounded-2xl border transition-all
+                ${location.pathname === link.path 
+                  ? "bg-white/10 border-white/20 text-white" 
+                  : "bg-white/5 border-transparent text-gray-500 hover:text-white"}
+              `}
+            >
+              <span className="text-xl font-black uppercase tracking-tighter italic">{link.name}</span>
+              <LayoutGrid size={18} className={location.pathname === link.path ? "text-purple-500" : "opacity-0"} />
+            </Link>
+          ))}
 
-            {isAdmin && (
-              <Link
-                to="/uploadBlog"
-                onClick={handleLinkClick}
-                className="text-2xl font-black uppercase tracking-tighter text-purple-400 border-t border-white/10 pt-4"
-              >
-                Add Article
-              </Link>
-            )}
+          {/* Admin link inside mobile menu */}
+          {isAdmin && (
+            <Link
+              to="/uploadBlog"
+              onClick={handleLinkClick}
+              className="flex items-center justify-between p-5 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400"
+            >
+              <span className="text-xl font-black uppercase tracking-tighter italic">Add Article</span>
+              <PlusSquare size={20} />
+            </Link>
+          )}
 
+          {/* Logout Section in Mobile */}
+          <div className="pt-8 mt-auto">
             <button
               onClick={handleLogout}
-              className="mt-10 w-full py-5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 font-black uppercase tracking-widest flex items-center justify-center gap-3"
+              className="w-full p-5 rounded-2xl bg-red-600 text-white font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 shadow-2xl shadow-red-600/20"
             >
-              <LogOut size={20} /> Exit Arena
+              <LogOut size={20} /> Exit the Hub
             </button>
+            <p className="text-center text-gray-700 text-[10px] mt-6 font-mono">Cloudio Dashboard v1.0 Production</p>
           </div>
         </div>
-      )}
+      </div>
     </nav>
   );
 };
