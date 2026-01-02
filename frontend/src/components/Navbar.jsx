@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import logo from "../images/logo.png";
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { jwtDecode } from "jwt-decode";
+import { Menu, X, LogOut, PlusSquare } from 'lucide-react';
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // 🔐 Check admin from JWT
@@ -29,42 +31,45 @@ const Navbar = () => {
   ];
 
   const handleLinkClick = () => {
-    setIsMobileMenuOpen(false); // Close mobile menu on link click
+    setIsMobileMenuOpen(false);
   };
 
+  // 🔥 UPDATED LOGOUT LOGIC
   const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = "/login";
-    setIsMobileMenuOpen(false); // Close mobile menu
+    localStorage.clear(); // Saari login details saaf
+    setIsMobileMenuOpen(false);
+    // window.location.href ki jagah navigate use kiya taaki refresh/404 na aaye
+    navigate("/login", { replace: true }); 
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-gradient-to-r from-[#0c0c0c] via-[#141414] to-[#0c0c0c] border-b border-white/10 shadow-lg">
+    <nav className="fixed top-0 left-0 w-full z-[100] bg-[#0c0c0c]/80 backdrop-blur-xl border-b border-white/10">
       <div className="max-w-7xl mx-auto flex items-center justify-between h-[80px] px-6 lg:px-12">
 
         {/* Logo */}
-        <Link to="/" className="logo" onClick={handleLinkClick}>
+        <Link to="/" className="flex items-center" onClick={handleLinkClick}>
           <img
-            className="w-[180px] hover:scale-105 transition-transform"
+            className="w-[150px] md:w-[180px] hover:brightness-110 transition-all"
             src={logo}
             alt="Logo"
           />
         </Link>
 
         {/* Desktop Links */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-6">
           {navLinks.map((link, idx) => (
             <Link
               key={idx}
               to={link.path}
-              onClick={handleLinkClick}
-              className={`relative px-3 py-2 text-sm font-semibold tracking-wide transition-all duration-300 
+              className={`text-sm font-bold tracking-tight transition-all duration-300 
                 ${location.pathname === link.path
-                  ? "text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500"
-                  : "text-gray-300 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-purple-400 hover:to-pink-500"}
-              `}
+                  ? "text-white"
+                  : "text-gray-500 hover:text-gray-200"}`}
             >
               {link.name}
+              {location.pathname === link.path && (
+                <div className="h-1 w-1 bg-purple-500 rounded-full mx-auto mt-1 animate-pulse"></div>
+              )}
             </Link>
           ))}
 
@@ -72,82 +77,63 @@ const Navbar = () => {
           {isAdmin && (
             <Link
               to="/uploadBlog"
-              onClick={handleLinkClick}
-              className="px-3 py-2 text-sm font-semibold text-purple-400 hover:text-pink-400"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm font-bold hover:bg-purple-500/20 transition-all"
             >
-              Add Article
+              <PlusSquare size={16} /> Add Article
             </Link>
           )}
 
-          {/* Logout */}
+          {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="ml-4 px-5 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold"
+            className="group flex items-center gap-2 ml-4 px-5 py-2.5 rounded-xl bg-white text-black text-sm font-black uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95"
           >
+            <LogOut size={16} className="group-hover:translate-x-1 transition-transform" /> 
             Logout
           </button>
         </div>
 
-        {/* Mobile Hamburger Button */}
+        {/* Mobile Toggle */}
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="md:hidden text-white text-2xl focus:outline-none"
+          className="md:hidden p-2 rounded-xl bg-white/5 text-white"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              className={!isMobileMenuOpen ? "block" : "hidden"}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-            <path
-              className={isMobileMenuOpen ? "block" : "hidden"}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu (Glassmorphic) */}
       {isMobileMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-gradient-to-r from-[#0c0c0c] via-[#141414] to-[#0c0c0c] border-b border-white/10 shadow-lg py-4 px-6">
+        <div className="md:hidden fixed inset-0 top-[80px] bg-[#0c0c0c]/95 backdrop-blur-2xl z-50 p-6 flex flex-col space-y-6">
           <div className="flex flex-col space-y-4">
             {navLinks.map((link, idx) => (
               <Link
                 key={idx}
                 to={link.path}
                 onClick={handleLinkClick}
-                className={`text-sm font-semibold tracking-wide transition-all duration-300 text-gray-300 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-purple-400 hover:to-pink-500 py-2 ${
-                  location.pathname === link.path
-                    ? "text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500"
-                    : ""
+                className={`text-2xl font-black uppercase tracking-tighter ${
+                  location.pathname === link.path ? "text-purple-500" : "text-gray-600"
                 }`}
               >
                 {link.name}
               </Link>
             ))}
 
-            {/* 🔥 Admin Only */}
             {isAdmin && (
               <Link
                 to="/uploadBlog"
                 onClick={handleLinkClick}
-                className="text-sm font-semibold text-purple-400 hover:text-pink-400 py-2"
+                className="text-2xl font-black uppercase tracking-tighter text-purple-400 border-t border-white/10 pt-4"
               >
                 Add Article
               </Link>
             )}
 
-            {/* Logout */}
             <button
               onClick={handleLogout}
-              className="px-5 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold w-full text-left"
+              className="mt-10 w-full py-5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 font-black uppercase tracking-widest flex items-center justify-center gap-3"
             >
-              Logout
+              <LogOut size={20} /> Exit Arena
             </button>
           </div>
         </div>
