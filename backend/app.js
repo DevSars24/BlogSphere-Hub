@@ -35,18 +35,25 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+    
+    // Check if the origin starts with your vercel project prefix or is in the list
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('vercel.app')) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.options('*', cors());
+// Removed: app.options('*', cors()); 
+// This line was causing the path-to-regexp error in Express 5+ because '*' is an invalid unnamed wildcard.
+// The main cors() middleware already handles OPTIONS preflight requests for all routes, so this is redundant.
+
 // -------------------------------------------------------------------------
 
 // MongoDB Connection
