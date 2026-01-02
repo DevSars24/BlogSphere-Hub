@@ -28,28 +28,36 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // IMPROVED CORS CONFIGURATION
 // -------------------------------------------------------------------------
 // Simplified CORS configuration
-const allowedOrigins = [
-  'http://localhost:5173', 
-  'https://blogsphere-4mkrlgebr-saurabh-singhs-projects-4d1f9766.vercel.app'
-];
+// const allowedOrigins = [
+//   'http://localhost:5173', 
+//   'https://blogsphere-4mkrlgebr-saurabh-singhs-projects-4d1f9766.vercel.app'
+// ];
+
+// app.use(cors({
+//   origin: function (origin, callback) {
+//     // allow requests with no origin (like mobile apps or curl)
+//     if (!origin) return callback(null, true);
+    
+//     // Check if the origin starts with your vercel project prefix or is in the list
+//     if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('vercel.app')) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   credentials: true,
+//   allowedHeaders: ['Content-Type', 'Authorization']
+// }));
+// You can remove the 'allowedOrigins' array as it is no longer needed.
 
 app.use(cors({
-  origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    
-    // Check if the origin starts with your vercel project prefix or is in the list
-    if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('vercel.app')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  // 'origin: true' allows any domain by reflecting the request origin back
+  origin: true, 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
 // Removed: app.options('*', cors()); 
 // This line was causing the path-to-regexp error in Express 5+ because '*' is an invalid unnamed wildcard.
 // The main cors() middleware already handles OPTIONS preflight requests for all routes, so this is redundant.
@@ -58,8 +66,8 @@ app.use(cors({
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
+  // useNewUrlParser: true,
+  // useUnifiedTopology: true
 })
   .then(() => console.log('✅ MongoDB connected successfully'))
   .catch(err => console.error('❌ MongoDB connection error:', err.message));
