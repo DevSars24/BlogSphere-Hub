@@ -1,2 +1,9 @@
 @import "tailwindcss";
 
+/* Theming in v4 is done here! 
+   No tailwind.config.js needed for basic changes.
+*/
+@theme {
+  --color-brand: #3b82f6;
+  --font-display: "Inter", sans-serif;
+}

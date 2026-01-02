@@ -1,3 +1,4 @@
+// backend/app.js
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -5,7 +6,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
 var mongoose = require('mongoose');
-require('dotenv').config(); // Load .env file
+require('dotenv').config();
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -23,12 +24,40 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// CORS configuration
+// -------------------------------------------------------------------------
+// IMPROVED CORS CONFIGURATION
+// -------------------------------------------------------------------------
+const allowedOrigins = [
+  'http://localhost:5173', 
+  // Add your specific Vercel URL here:
+  'https://blogsphere-4mkrlgebr-saurabh-singhs-projects-4d1f9766.vercel.app',
+  /\.vercel\.app$/ // This regex will allow ALL public vercel.app URLs you generate
+];
 app.use(cors({
-  origin: 'http://localhost:5173', // Match your React app port
-  methods: ['GET', 'POST'],
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (allowed instanceof RegExp) return allowed.test(origin);
+      return allowed === origin;
+    });
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.log('Blocked by CORS:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Handle preflight OPTIONS requests globally
+app.options('*', cors());
+// -------------------------------------------------------------------------
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
