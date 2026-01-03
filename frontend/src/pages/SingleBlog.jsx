@@ -133,19 +133,18 @@ const SingleBlog = () => {
               </button>
             )}
 
-         {/* ✅ FIXED IMAGE SRC FOR CLOUDINARY */}
-<div className="rounded-3xl overflow-hidden border border-white/10 shadow-xl">
-  <img
-    src={data.image} 
-    alt={data.title}
-    crossOrigin="anonymous" 
-    {/* 👇 Yahan 'object-cover' ki jagah 'object-contain' kar diya */}
-    className="w-full aspect-video object-contain bg-black/20" 
-    onError={(e) => {
-      e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe";
-    }}
-  />
-</div>
+            {/* ✅ FIXED IMAGE SRC FOR CLOUDINARY */}
+            <div className="rounded-3xl overflow-hidden border border-white/10 shadow-xl">
+              <img
+                src={data.image} // Cloudinary ka full URL direct use karein
+                alt={data.title}
+                crossOrigin="anonymous" // CORS issue se bachne ke liye
+                className="w-full aspect-video object-cover"
+                onError={(e) => {
+                  e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe";
+                }}
+              />
+            </div>
           </header>
 
           <div className="prose prose-invert prose-lg max-w-none">
