@@ -134,17 +134,19 @@ const SingleBlog = () => {
             )}
 
             {/* ✅ FIXED IMAGE SRC FOR CLOUDINARY */}
-            <div className="rounded-3xl overflow-hidden border border-white/10 shadow-xl">
-              <img
-                src={data.image} // Cloudinary ka full URL direct use karein
-                alt={data.title}
-                crossOrigin="anonymous" // CORS issue se bachne ke liye
-                className="w-full aspect-video object-cover"
-                onError={(e) => {
-                  e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe";
-                }}
-              />
-            </div>
+           {/* ✅ FIXED IMAGE FOR ALL SCREENS */}
+<div className="rounded-3xl overflow-hidden border border-white/10 shadow-xl bg-black/40">
+  <img
+    src={data.image}
+    alt={data.title}
+    crossOrigin="anonymous"
+    // Hawa mein udne wali classes hatayi aur ye add ki:
+    className="w-full h-auto max-h-[500px] object-contain block mx-auto"
+    onError={(e) => {
+      e.target.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe";
+    }}
+  />
+</div>
           </header>
 
           <div className="prose prose-invert prose-lg max-w-none">
