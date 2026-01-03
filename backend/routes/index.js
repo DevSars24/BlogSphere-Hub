@@ -1,246 +1,130 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
 var userModel = require("../models/userModel");
 var blogModel = require("../models/blogModel");
-var bcrypt = require('bcryptjs');
-const multer = require('multer');
-const path = require('path');
-var jwt = require('jsonwebtoken');
+var bcrypt = require("bcryptjs");
+var jwt = require("jsonwebtoken");
+const upload = require("../config/multer");
 
 const secret = process.env.JWT_SECRET || "secret";
-
-/* GET home page. */
-router.get('/', function (req, res) {
-  res.render('index', { title: 'Express' });
-});
 
 /* ======================
    SIGN UP
 ====================== */
 router.post("/signUp", async (req, res) => {
   try {
-    let { username, name, email, password } = req.body;
+    const { username, name, email, password } = req.body;
 
-    let emailCon = await userModel.findOne({ email });
-    if (emailCon) {
-      return res.json({
-        success: false,
-        msg: "Email already exists"
-      });
+    if (await userModel.findOne({ email })) {
+      return res.json({ success: false, msg: "Email already exists" });
     }
 
-    // 🔥 Admin email check
-    let isAdmin = false;
-    if (email === "saurabhsingh100605@gmail.com") {
-      isAdmin = true;
-    }
+    const isAdmin = email === "saurabhsingh100605@gmail.com";
+    const hash = await bcrypt.hash(password, 12);
 
-    bcrypt.genSalt(12, function (err, salt) {
-      bcrypt.hash(password, salt, async function (err, hash) {
-        if (err) throw err;
-
-        await userModel.create({
-          username,
-          name,
-          email,
-          password: hash,
-          isAdmin
-        });
-
-        return res.json({
-          success: true,
-          msg: "User created successfully"
-        });
-      });
+    await userModel.create({
+      username,
+      name,
+      email,
+      password: hash,
+      isAdmin,
     });
-  } catch (err) {
-    return res.json({
-      success: false,
-      msg: "Signup failed"
-    });
+
+    res.json({ success: true, msg: "User created successfully" });
+  } catch {
+    res.json({ success: false, msg: "Signup failed" });
   }
 });
 
 /* ======================
-   LOGIN (JWT + isAdmin)
+   LOGIN
 ====================== */
 router.post("/login", async (req, res) => {
-  let { email, password } = req.body;
+  const { email, password } = req.body;
+  const user = await userModel.findOne({ email });
 
-  let user = await userModel.findOne({ email });
   if (!user) {
-    return res.json({
-      success: false,
-      msg: "User not found"
-    });
+    return res.json({ success: false, msg: "User not found" });
   }
 
-  bcrypt.compare(password, user.password, function (err, result) {
-    if (result) {
-      // 🔥 isAdmin included in token
-      let token = jwt.sign(
-        {
-          userId: user._id,
-          isAdmin: user.isAdmin
-        },
-        secret
-      );
+  if (!(await bcrypt.compare(password, user.password))) {
+    return res.json({ success: false, msg: "Invalid password" });
+  }
 
-      return res.json({
-        success: true,
-        msg: "User logged in successfully",
-        token
-      });
-    } else {
-      return res.json({
-        success: false,
-        msg: "Invalid password"
-      });
-    }
-  });
+  const token = jwt.sign(
+    { userId: user._id, isAdmin: user.isAdmin },
+    secret
+  );
+
+  res.json({ success: true, token });
 });
 
-
 /* ======================
-   DELETE BLOG (ADMIN ONLY)
+   UPLOAD BLOG (ADMIN)
 ====================== */
-router.post("/deleteBlog", async (req, res) => {
-  try {
-    const { blogId, token } = req.body;
+router.post(
+  "/uploadBlog",
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const { token, title, desc, content } = req.body;
+      const decoded = jwt.verify(token, secret);
 
-    if (!token) {
-      return res.json({
-        success: false,
-        msg: "Token required"
+      if (!decoded.isAdmin) {
+        return res.json({ success: false, msg: "Admin only" });
+      }
+
+      if (!req.file) {
+        return res.json({ success: false, msg: "Image missing" });
+      }
+
+      const blog = await blogModel.create({
+        title,
+        desc,
+        content,
+        image: req.file.path, // 🔥 CLOUDINARY URL
       });
+
+      res.json({ success: true, blog });
+    } catch {
+      res.json({ success: false, msg: "Upload failed" });
     }
-
-    const decoded = jwt.verify(token, secret);
-
-    // 🔒 ADMIN CHECK
-    if (!decoded.isAdmin) {
-      return res.json({
-        success: false,
-        msg: "Admin access only"
-      });
-    }
-
-    const deletedBlog = await blogModel.findByIdAndDelete(blogId);
-
-    if (!deletedBlog) {
-      return res.json({
-        success: false,
-        msg: "Blog not found"
-      });
-    }
-
-    return res.json({
-      success: true,
-      msg: "Blog deleted successfully"
-    });
-
-  } catch (err) {
-    return res.json({
-      success: false,
-      msg: "Invalid or expired token"
-    });
   }
-});
-
-
+);
 
 /* ======================
-   MULTER SETUP
-====================== */
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, './uploads');
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extName = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + extName);
-  }
-});
-
-const upload = multer({ storage });
-
-/* ======================
-   UPLOAD BLOG (ADMIN ONLY)
-====================== */
-router.post("/uploadBlog", upload.single('image'), async (req, res) => {
-  try {
-    let { token, title, desc, content } = req.body;
-
-    let decoded = jwt.verify(token, secret);
-
-    // 🔒 ADMIN CHECK
-    if (!decoded.isAdmin) {
-      return res.json({
-        success: false,
-        msg: "Admin access only"
-      });
-    }
-
-    const imageName = req.file ? req.file.filename : null;
-
-    let blog = await blogModel.create({
-      title,
-      desc,
-      content,
-      image: imageName
-    });
-
-    return res.json({
-      success: true,
-      msg: "Blog created successfully",
-      blog
-    });
-  } catch (err) {
-    return res.json({
-      success: false,
-      msg: "Invalid or expired token"
-    });
-  }
-});
-
-/* ======================
-   GET ALL BLOGS
+   GET BLOGS
 ====================== */
 router.post("/getBlogs", async (req, res) => {
-  try {
-    let blogs = await blogModel.find({});
-    return res.json({
-      success: true,
-      msg: "Blogs fetched successfully",
-      blogs
-    });
-  } catch {
-    return res.json({
-      success: false,
-      msg: "Failed to fetch blogs"
-    });
-  }
+  const blogs = await blogModel.find({});
+  res.json({ success: true, blogs });
 });
 
 /* ======================
    GET SINGLE BLOG
 ====================== */
 router.post("/getBlog", async (req, res) => {
-  try {
-    let { blogId } = req.body;
-    let blog = await blogModel.findOne({ _id: blogId });
+  const { blogId } = req.body;
+  const blog = await blogModel.findById(blogId);
+  res.json({ success: true, blog });
+});
 
-    return res.json({
-      success: true,
-      msg: "Blog fetched successfully",
-      blog
-    });
+/* ======================
+   DELETE BLOG
+====================== */
+router.post("/deleteBlog", async (req, res) => {
+  try {
+    const { blogId, token } = req.body;
+    const decoded = jwt.verify(token, secret);
+
+    if (!decoded.isAdmin) {
+      return res.json({ success: false, msg: "Admin only" });
+    }
+
+    await blogModel.findByIdAndDelete(blogId);
+    res.json({ success: true });
   } catch {
-    return res.json({
-      success: false,
-      msg: "Blog not found"
-    });
+    res.json({ success: false, msg: "Delete failed" });
   }
 });
 
