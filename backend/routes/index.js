@@ -100,6 +100,55 @@ router.post("/login", async (req, res) => {
   });
 });
 
+
+/* ======================
+   DELETE BLOG (ADMIN ONLY)
+====================== */
+router.post("/deleteBlog", async (req, res) => {
+  try {
+    const { blogId, token } = req.body;
+
+    if (!token) {
+      return res.json({
+        success: false,
+        msg: "Token required"
+      });
+    }
+
+    const decoded = jwt.verify(token, secret);
+
+    // 🔒 ADMIN CHECK
+    if (!decoded.isAdmin) {
+      return res.json({
+        success: false,
+        msg: "Admin access only"
+      });
+    }
+
+    const deletedBlog = await blogModel.findByIdAndDelete(blogId);
+
+    if (!deletedBlog) {
+      return res.json({
+        success: false,
+        msg: "Blog not found"
+      });
+    }
+
+    return res.json({
+      success: true,
+      msg: "Blog deleted successfully"
+    });
+
+  } catch (err) {
+    return res.json({
+      success: false,
+      msg: "Invalid or expired token"
+    });
+  }
+});
+
+
+
 /* ======================
    MULTER SETUP
 ====================== */
