@@ -40,19 +40,37 @@ const Blogs = () => {
 
   return (
     <>
+      {/* Navbar Fixed hota hai isliye niche wale div mein padding zaroori hai */}
       <Navbar />
 
-      <div className="min-h-screen bg-[#0c0c0c] px-4 sm:px-6 lg:px-24 py-10 text-white">
+      <div className="min-h-screen bg-[#0c0c0c] px-4 sm:px-6 lg:px-24 pt-28 pb-10 text-white">
+        {/* Header Section */}
+        <div className="mb-10">
+          <h1 className="text-3xl font-bold">All Blogs</h1>
+          <p className="text-gray-400 mt-2">Explore the latest updates and stories.</p>
+        </div>
 
-
-        {loading && <p className="text-gray-400">Loading blogs...</p>}
-        {error && <p className="text-red-400">{error}</p>}
-
-        {!loading && blogs.length === 0 && (
-          <p className="text-gray-400">No blogs found.</p>
+        {/* Status Messages */}
+        {loading && (
+          <div className="flex justify-center items-center h-40">
+            <p className="text-gray-400 animate-pulse">Loading blogs...</p>
+          </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {error && (
+          <div className="bg-red-900/20 border border-red-500 p-4 rounded-lg mb-6">
+            <p className="text-red-400">{error}</p>
+          </div>
+        )}
+
+        {/* Blogs Grid */}
+        {!loading && blogs.length === 0 && !error && (
+          <div className="text-center py-20">
+            <p className="text-gray-500 text-xl">No blogs found.</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {blogs.map((blog) => (
             <Blog key={blog._id} data={blog} />
           ))}
@@ -63,5 +81,3 @@ const Blogs = () => {
 };
 
 export default Blogs;
-
-  
