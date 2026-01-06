@@ -43,9 +43,7 @@ const Blogs = () => {
       <Navbar />
 
       <div className="min-h-screen bg-[#0c0c0c] px-4 sm:px-6 lg:px-24 py-10 text-white">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-8">
-          Blogs
-        </h1>
+    
 
         {loading && <p className="text-gray-400">Loading blogs...</p>}
         {error && <p className="text-red-400">{error}</p>}
