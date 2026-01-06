@@ -50,7 +50,14 @@ const Navbar = () => {
     }`}>
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 lg:px-12">
 
-      
+        {/* Logo - Minimal & Fast */}
+        <Link to="/" className="relative z-[110]" onClick={() => setIsMobileMenuOpen(false)}>
+          <img
+            className="w-[110px] md:w-[150px] object-contain"
+            src={logo}
+            alt="Logo"
+          />
+        </Link>
 
         {/* Desktop Navigation - Senior UX Style */}
         <div className="hidden md:flex items-center gap-10">
