@@ -2,14 +2,21 @@ import React, { useState, useEffect } from 'react';
 import logo from "../images/logo.png";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { jwtDecode } from "jwt-decode";
-import { Menu, X, LogOut, PlusSquare, LayoutGrid } from 'lucide-react';
+import { Menu, X, LogOut, PlusSquare, LayoutGrid, ArrowRight } from 'lucide-react';
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  // 🔐 Admin logic
+  // Scroll logic for glass effect
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   let isAdmin = false;
   const token = localStorage.getItem("token");
   if (token) {
@@ -27,16 +34,9 @@ const Navbar = () => {
     { name: "Contact", path: "/contact" },
   ];
 
-  // Prevent scrolling when mobile menu is open
   useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+    document.body.style.overflow = isMobileMenuOpen ? 'hidden' : 'unset';
   }, [isMobileMenuOpen]);
-
-  const handleLinkClick = () => setIsMobileMenuOpen(false);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -45,105 +45,124 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-[100] transition-all duration-300 bg-[#0c0c0c]/90 backdrop-blur-xl border-b border-white/5">
-      <div className="max-w-7xl mx-auto flex items-center justify-between h-[70px] md:h-[85px] px-5 lg:px-12">
+    <nav className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 ${
+      scrolled ? "bg-black/80 backdrop-blur-xl border-b border-white/5 py-3" : "bg-transparent py-5"
+    }`}>
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 lg:px-12">
 
-        {/* Logo Section */}
-        <Link to="/" className="flex items-center" onClick={handleLinkClick}>
+        {/* Logo - Minimal & Fast */}
+        <Link to="/" className="relative z-[110]" onClick={() => setIsMobileMenuOpen(false)}>
           <img
-            className="w-[130px] md:w-[170px] object-contain transition-all"
+            className="w-[110px] md:w-[150px] object-contain"
             src={logo}
             alt="Logo"
           />
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-8">
+        {/* Desktop Navigation - Senior UX Style */}
+        <div className="hidden md:flex items-center gap-10">
           {navLinks.map((link, idx) => (
             <Link
               key={idx}
               to={link.path}
-              className={`text-[13px] uppercase tracking-widest font-bold transition-all duration-300 
+              className={`text-[11px] uppercase tracking-[0.25em] font-bold transition-all duration-300 relative group
                 ${location.pathname === link.path ? "text-white" : "text-gray-500 hover:text-white"}`}
             >
               {link.name}
+              <span className={`absolute -bottom-1 left-0 h-[1px] bg-white transition-all duration-300 ${
+                location.pathname === link.path ? "w-full" : "w-0 group-hover:w-full"
+              }`}></span>
             </Link>
           ))}
 
           {isAdmin && (
             <Link
               to="/uploadBlog"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-black text-[12px] font-black uppercase tracking-tighter hover:bg-gray-200 transition-all"
+              className="px-5 py-2 rounded-full bg-white text-black text-[11px] font-black uppercase tracking-widest hover:invert transition-all flex items-center gap-2"
             >
-              <PlusSquare size={16} /> Add Article
+              <PlusSquare size={14} /> Add
             </Link>
           )}
 
           <button
             onClick={handleLogout}
-            className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-red-500/20 hover:border-red-500/50 transition-all"
+            className="p-2 rounded-full border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
           >
-            <LogOut size={20} />
+            <LogOut size={18} />
           </button>
         </div>
 
-        {/* Mobile Toggle Button */}
+        {/* Mobile Toggle Button - Abstract Style */}
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="md:hidden p-2.5 rounded-xl bg-white/5 text-gray-300 border border-white/10 active:scale-90 transition-all"
+          className="md:hidden relative z-[110] p-2 text-white transition-all active:scale-90"
         >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
       </div>
 
-      {/* --- MOBILE OVERLAY MENU --- */}
+      {/* --- ELITE MOBILE DRAWER --- */}
       <div className={`
-        fixed inset-0 top-[70px] w-full h-[calc(100vh-70px)] bg-[#080808] z-50 
-        md:hidden flex flex-col transition-all duration-500 ease-in-out
-        ${isMobileMenuOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"}
+        fixed inset-0 w-full h-screen bg-black z-[105] flex flex-col 
+        transition-all duration-700 cubic-bezier(0.85, 0, 0.15, 1)
+        ${isMobileMenuOpen ? "translate-y-0" : "-translate-y-full"}
       `}>
-        <div className="flex flex-col p-8 space-y-4">
-          <p className="text-[10px] font-mono tracking-[0.4em] uppercase text-gray-600 mb-4 italic">Navigation Arena</p>
+        {/* Decorative background for mobile menu */}
+        <div className="absolute top-0 right-0 w-full h-full overflow-hidden opacity-30 pointer-events-none">
+            <div className="absolute top-[10%] right-[-10%] w-72 h-72 bg-white/5 rounded-full blur-[100px]"></div>
+            <div className="absolute bottom-[10%] left-[-10%] w-72 h-72 bg-white/5 rounded-full blur-[100px]"></div>
+        </div>
+
+        <div className="flex flex-col justify-center h-full px-10 space-y-8 relative z-10">
+          <p className="text-[10px] font-mono tracking-[0.6em] uppercase text-gray-600">Menu Navigation</p>
           
-          {navLinks.map((link, idx) => (
-            <Link
-              key={idx}
-              to={link.path}
-              onClick={handleLinkClick}
-              className={`
-                flex items-center justify-between p-5 rounded-2xl border transition-all
-                ${location.pathname === link.path 
-                  ? "bg-white/10 border-white/20 text-white" 
-                  : "bg-white/5 border-transparent text-gray-500 hover:text-white"}
-              `}
-            >
-              <span className="text-xl font-black uppercase tracking-tighter italic">{link.name}</span>
-              <LayoutGrid size={18} className={location.pathname === link.path ? "text-purple-500" : "opacity-0"} />
-            </Link>
-          ))}
+          <div className="flex flex-col space-y-6">
+            {navLinks.map((link, idx) => (
+              <Link
+                key={idx}
+                to={link.path}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="group flex items-center justify-between overflow-hidden"
+              >
+                <span className={`text-4xl font-bold tracking-tighter transition-all duration-500 ${
+                  location.pathname === link.path ? "text-white" : "text-gray-700 hover:text-gray-400"
+                }`}>
+                  {link.name}
+                </span>
+                <ArrowRight className={`transition-all duration-500 ${
+                  location.pathname === link.path ? "text-white translate-x-0" : "opacity-0 -translate-x-10"
+                }`} />
+              </Link>
+            ))}
+          </div>
 
-          {/* Admin link inside mobile menu */}
-          {isAdmin && (
-            <Link
-              to="/uploadBlog"
-              onClick={handleLinkClick}
-              className="flex items-center justify-between p-5 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400"
-            >
-              <span className="text-xl font-black uppercase tracking-tighter italic">Add Article</span>
-              <PlusSquare size={20} />
-            </Link>
-          )}
+          <div className="pt-10 space-y-6 border-t border-white/5">
+            {isAdmin && (
+              <Link
+                to="/uploadBlog"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-4 text-gray-400 hover:text-white"
+              >
+                <PlusSquare size={20} />
+                <span className="text-sm uppercase tracking-widest font-bold">Admin Console</span>
+              </Link>
+            )}
 
-          {/* Logout Section in Mobile */}
-          <div className="pt-8 mt-auto">
             <button
               onClick={handleLogout}
-              className="w-full p-5 rounded-2xl bg-red-600 text-white font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 shadow-2xl shadow-red-600/20"
+              className="flex items-center gap-4 text-red-500 group"
             >
-              <LogOut size={20} /> Exit the Hub
+              <div className="p-3 rounded-full bg-red-500/10 group-active:bg-red-500 group-active:text-white transition-all">
+                <LogOut size={20} />
+              </div>
+              <span className="text-sm uppercase tracking-widest font-bold">Terminate Session</span>
             </button>
-            <p className="text-center text-gray-700 text-[10px] mt-6 font-mono">Cloudio Dashboard v1.0 Production</p>
           </div>
+        </div>
+
+        {/* Footer info in menu */}
+        <div className="p-10 text-center">
+            <p className="text-[9px] font-mono text-gray-700 tracking-[0.4em] uppercase">Saurabh Singh // Portfolio 2026</p>
         </div>
       </div>
     </nav>
